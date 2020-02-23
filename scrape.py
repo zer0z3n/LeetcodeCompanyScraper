@@ -25,24 +25,53 @@ def main():
     companies = text_file.read().split('\n')
     text_file.close()
 
-    driver = webdriver.Chrome(executable_path=r'/home/arthur/Programming/LeetcodePremiumScraper/chromedriver', chrome_options=opts)
+    driver = webdriver.Chrome(executable_path=r'./chromedriver', chrome_options=opts)
     driver.maximize_window()
     driver.get(login_url)
 
-    driver.find_element_by_id("id_login").send_keys("")
-    driver.find_element_by_id("id_password").send_keys("")
-    driver.find_element_by_id("id_password").submit()
-    time.sleep(4)
+    username = input("Enter username/email: ")
+    passwd = input("Enter password: ")
 
+    time.sleep(5)
+
+    while True:
+        try:
+            driver.find_element_by_id("id_login").send_keys(username)
+            driver.find_element_by_id("id_password").send_keys(passwd)
+            driver.find_element_by_id("signin_btn").click();
+            break;
+        except:
+            time.sleep(1)
+
+    time.sleep(5)
 
     for company in companies:
         lc_url = "https://leetcode.com/company/" + company
         driver.get(lc_url)
-        #driver.find_element_by_class_name("reactable-th-frequency").click()
 
-        periods = ["6months", "1year", "2year", "alltime"]
+        counter = 0
+        periodNames = ['6months', '1year', '2year', 'alltime']
+        periods = ["react-select-2--option-0", "react-select-2--option-1", "react-select-2--option-2", "react-select-2--option-3" ]
         for period in periods:
-            i = input("Please select {}".format(period))
+            while True:
+                try:
+                    driver.find_element_by_class_name('Select-control').click();
+                    break
+                except:
+                    print("Dropdown menu not found. Retrying.")
+                    # quick hack to make the question bubble go away
+                    driver.find_element_by_id('app').click();
+                    time.sleep(1)
+
+            try:
+                time.sleep(0.05)
+                driver.find_element_by_id(period).click()
+            except:
+                 print("Dropdown menu item not found. Continuing.")
+                 counter = (counter+1)%4
+                 continue
+
+            time.sleep(0.05)
 
             ans = ""
 
@@ -58,10 +87,14 @@ def main():
                     title = data[2].text
                     acceptance = data[3].text
                     difficulty = data[4].text
-                    frequency = data[5]['value']
+                    if 'value' in data[5]:
+                        frequency = data[5]['value']
+                    else:
+                        frequency = 'N/A'
                     ans += (number+ "," + title+ ","+ acceptance+ ","+ difficulty+ "," +frequency+ "\n")
 
-            f = open(company + "_" + period, "w")
+            f = open("./scraped/" + company + "_" + periodNames[counter], "w")
+            counter = (counter+1)%4
             f.write(ans)
             f.close()
 
