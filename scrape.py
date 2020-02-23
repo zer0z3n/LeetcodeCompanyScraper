@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
+import os
 
 from selenium.webdriver import FirefoxOptions
 
@@ -12,6 +13,9 @@ import requests
 periods = ["6months", "1year", "2year", "alltime"]
 
 def main():
+    if not os.path.exists("scraped"):
+        os.makedirs(directory)
+
     login_url = "https://leetcode.com/accounts/login/"
 
     chrome_opts = webdriver.ChromeOptions()
@@ -68,6 +72,8 @@ def main():
                 driver.find_element_by_id(period).click()
             except:
                  print("Dropdown menu item not found. Continuing.")
+                 # quick hack to make the dropdown go away
+                 driver.find_element_by_id('app').click();
                  counter = (counter+1)%4
                  continue
 
